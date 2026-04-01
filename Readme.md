@@ -76,6 +76,21 @@ This provides a **Swagger UI** where you can test APIs easily.
 
 ---
 
+ 🐍 Python Venv + Requirements + Uvicorn (Quick Guide)
+
+## 1. Create Virtual Environment
+```bash
+python -m venv myenv
+## Activate Virtual Environment
+Windows
+myenv\Scripts\activate
+Linux / Mac
+source myenv/bin/activate
+3. Install Requirements
+pip install -r requirements.txt
+4. Run Uvicorn Server
+uvicorn main:app --reload
+
 ## 📌 API Usage
 
 ### Input Format
