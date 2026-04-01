@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Cloud Assistant</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: #f5f7fa;
+      color: #1e293b;
+      min-height: 100vh;
+    }
+
+    header {
+      text-align: center;
+      padding: 60px 20px 32px;
+    }
+
+    header h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+    }
+
+    header h1 span {
+      color: #3b82f6;
+    }
+
+    header p {
+      margin-top: 8px;
+      color: #64748b;
+    }
+
+    main {
+      max-width: 640px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .input-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid #e2e8f0;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      font-size: 1rem;
+    }
+
+    .btn {
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: #2563eb;
+    }
+
+    .btn:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .output-card {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      overflow: hidden;
+      display: none;
+    }
+
+    .output-header {
+      padding: 12px 20px;
+      background: #f0fdf4;
+      border-bottom: 1px solid #e2e8f0;
+      font-weight: bold;
+      color: #16a34a;
+    }
+
+    .error-header {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+
+    .output-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 20px;
+      gap: 16px;
+    }
+
+    .detail label {
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+
+    .detail p {
+      font-weight: bold;
+    }
+
+    .loading {
+      text-align: center;
+      margin-top: 10px;
+      color: #3b82f6;
+      display: none;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <header>
+    <h1><span>☁</span> AI Cloud Assistant</h1>
+    <p>Create AWS EC2 instances using simple text</p>
+  </header>
+
+  <main>
+
+```
+<div class="input-card">
+  <textarea id="commandInput"
+    placeholder="Example: Create a low-cost Ubuntu EC2 in Mumbai with SSH access"></textarea>
+
+  <button id="createBtn" class="btn" onclick="createInstance()">🚀 Create Instance</button>
+
+  <div id="loading" class="loading">⏳ Creating instance...</div>
+</div>
+
+<div id="outputCard" class="output-card">
+  <div id="outputHeader" class="output-header">Instance Created Successfully</div>
+
+  <div class="output-body">
+    <div class="detail">
+      <label>Instance Type</label>
+      <p id="instanceType">-</p>
+    </div>
+
+    <div class="detail">
+      <label>Region</label>
+      <p id="region">-</p>
+    </div>
+
+    <div class="detail">
+      <label>Operating System</label>
+      <p id="os">-</p>
+    </div>
+
+    <div class="detail">
+      <label>Status</label>
+      <p id="status">-</p>
+    </div>
+
+    <div class="detail">
+      <label>Instance ID</label>
+      <p id="instanceId">-</p>
+    </div>
+  </div>
+</div>
+
+<p class="footer">Connected to FastAPI Backend 🚀</p>
+```
+
+  </main>
+
+  <script>
+    async function createInstance() {
+      const text = document.getElementById("commandInput").value;
+      const btn = document.getElementById("createBtn");
+      const loading = document.getElementById("loading");
+      const card = document.getElementById("outputCard");
+      const header = document.getElementById("outputHeader");
+
+      if (!text) {
+        alert("Please enter a command");
+        return;
+      }
+
+      btn.disabled = true;
+      loading.style.display = "block";
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ text: text })
+        });
+
+        const data = await response.json();
+
+        card.style.display = "block";
+
+        if (data.status === "success") {
+          header.className = "output-header";
+          header.innerText = "Instance Created Successfully";
+
+          document.getElementById("instanceType").innerText = data.config.instance_type || "N/A";
+          document.getElementById("region").innerText = data.config.region || "N/A";
+          document.getElementById("os").innerText = data.config.os || "N/A";
+          document.getElementById("status").innerText = "Running";
+          document.getElementById("instanceId").innerText = data.instance_id || "N/A";
+
+        } else {
+          throw new Error("Backend error");
+        }
+
+      } catch (err) {
+        card.style.display = "block";
+        header.className = "output-header error-header";
+        header.innerText = "Error creating instance";
+
+        document.getElementById("status").innerText = "Failed";
+        console.error(err);
+      }
+
+      loading.style.display = "none";
+      btn.disabled = false;
+    }
+  </script>
+
+</body>
+
+</html>
